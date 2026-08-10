@@ -13,6 +13,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
+    role: UserRole = Field(default=UserRole.ATTENDEE)
 
     @field_validator("password")
     @classmethod
@@ -21,6 +22,13 @@ class UserCreate(UserBase):
             raise ValueError("Parola trebuie să conțină cel puțin o cifră")
         if not any(c.isalpha() for c in v):
             raise ValueError("Parola trebuie să conțină cel puțin o literă")
+        return v
+
+    @field_validator("role")
+    @classmethod
+    def no_public_admin_registration(cls, v: UserRole) -> UserRole:
+        if v == UserRole.ADMIN:
+            raise ValueError("Rolul admin nu poate fi atribuit prin înregistrare publică")
         return v
 
 
