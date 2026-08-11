@@ -5,6 +5,7 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import AsyncSessionLocal
 from app.security import oauth2_scheme, decode_token
@@ -71,7 +72,9 @@ async def get_event_or_404(
     event_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Event:
-    result = await db.execute(select(Event).where(Event.id == event_id))
+    result = await db.execute(
+        select(Event).options(selectinload(Event.organizer)).where(Event.id == event_id)
+    )
     event = result.scalar_one_or_none()
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Eveniment inexistent")
