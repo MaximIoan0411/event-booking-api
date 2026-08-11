@@ -91,3 +91,14 @@ async def get_event_owner_or_admin(
             detail="Nu ai permisiunea să modifici acest eveniment",
         )
     return event
+
+
+async def get_user_or_404(
+    user_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User inexistent")
+    return user
