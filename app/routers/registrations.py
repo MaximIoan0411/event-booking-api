@@ -5,14 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db, get_current_user, get_event_owner_or_admin
+from app.dependencies import get_db, get_current_user, get_event_owner_or_admin, run_expiration_sweep
 from app.models.user import User
 from app.models.registration import Registration
 from app.schemas.registration import RegistrationCreate, RegistrationOut, RegistrationResult
 from app.schemas.waitlist import WaitlistOut
 from app.services.registration_service import register_for_event, confirm_registration, cancel_registration
 
-router = APIRouter(tags=["registrations"])
+from fastapi import Request
+from app.limiter import limiter
+
+router = APIRouter(tags=["registrations"], dependencies=[Depends(run_expiration_sweep)])
 
 
 async def _get_own_registration(
@@ -30,7 +33,9 @@ async def _get_own_registration(
 
 
 @router.post("/registrations", response_model=RegistrationResult, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def create_registration(
+    request: Request,
     body: RegistrationCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

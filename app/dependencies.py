@@ -102,3 +102,9 @@ async def get_user_or_404(
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User inexistent")
     return user
+
+
+
+async def run_expiration_sweep(db: Annotated[AsyncSession, Depends(get_db)]) -> None:
+    from app.services.waitlist_service import expire_stale_entries
+    await expire_stale_entries(db)

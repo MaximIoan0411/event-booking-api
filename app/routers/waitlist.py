@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db, get_current_user, get_event_owner_or_admin
+from app.dependencies import get_db, get_current_user, get_event_owner_or_admin, run_expiration_sweep
 from app.models.user import User
 from app.models.waitlist import WaitlistEntry
 from app.schemas.waitlist import WaitlistOut
 
-router = APIRouter(tags=["waitlist"])
+router = APIRouter(tags=["waitlist"], dependencies=[Depends(run_expiration_sweep)])
 
 
 @router.get("/waitlist/me", response_model=list[WaitlistOut])

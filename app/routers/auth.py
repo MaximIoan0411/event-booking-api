@@ -23,6 +23,9 @@ from app.security import (
     decode_token,
 )
 
+from fastapi import Request
+from app.limiter import limiter
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -53,7 +56,9 @@ async def register(user_in: UserCreate, db: Annotated[AsyncSession, Depends(get_
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):

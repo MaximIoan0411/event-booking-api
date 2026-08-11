@@ -7,7 +7,8 @@ from sqlalchemy.orm import selectinload
 
 from app.dependencies import (
     get_db, get_current_organizer, get_current_admin,
-    get_event_or_404, get_event_owner_or_admin,
+    get_event_or_404, get_event_owner_or_admin,run_expiration_sweep,
+
 )
 from app.models.event import Event
 from app.models.registration import Registration
@@ -16,7 +17,7 @@ from app.enums import EventStatus, RegistrationStatus
 from app.schemas.event import EventCreate, EventUpdate, EventOut, EventApproval
 from app.schemas.common import PaginatedResponse
 
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(prefix="/events", tags=["events"], dependencies=[Depends(run_expiration_sweep)])
 
 
 async def _attach_available_spots(db: AsyncSession, event: Event) -> EventOut:
