@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Literal
 
 from pydantic import BaseModel, Field, ConfigDict, model_validator
@@ -19,6 +19,9 @@ class EventBase(BaseModel):
     def check_dates(self):
         if self.end_time <= self.start_time:
             raise ValueError("end_time trebuie să fie după start_time")
+        min_start = datetime.now(timezone.utc) + timedelta(days=2)
+        if self.start_time < min_start:
+            raise ValueError("start_time trebuie să fie cu cel puțin 2 zile în avans")
         return self
 
 
