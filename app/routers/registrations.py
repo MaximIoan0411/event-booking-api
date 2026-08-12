@@ -15,7 +15,7 @@ from app.services.registration_service import register_for_event, confirm_regist
 from fastapi import Request
 from app.limiter import limiter
 
-router = APIRouter(tags=["registrations"], dependencies=[Depends(run_expiration_sweep)])
+router = APIRouter(tags=["registrations"])
 
 
 async def _get_own_registration(
@@ -39,6 +39,7 @@ async def create_registration(
     body: RegistrationCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(run_expiration_sweep)],
 ):
     outcome, obj = await register_for_event(db, body.event_id, current_user.id)
     if outcome == "registered":
@@ -74,6 +75,7 @@ async def cancel_own_registration(
 async def list_my_registrations(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _: Annotated[None, Depends(run_expiration_sweep)],
 ):
     result = await db.execute(select(Registration).where(Registration.user_id == current_user.id))
     return result.scalars().all()
@@ -82,6 +84,7 @@ async def list_my_registrations(
 @router.get("/events/{event_id}/registrations", response_model=list[RegistrationOut])
 async def list_event_registrations(
     db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(run_expiration_sweep)],
     event=Depends(get_event_owner_or_admin),
 ):
     result = await db.execute(select(Registration).where(Registration.event_id == event.id))

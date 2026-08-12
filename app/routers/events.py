@@ -17,7 +17,7 @@ from app.enums import EventStatus, RegistrationStatus
 from app.schemas.event import EventCreate, EventUpdate, EventOut, EventApproval
 from app.schemas.common import PaginatedResponse
 
-router = APIRouter(prefix="/events", tags=["events"], dependencies=[Depends(run_expiration_sweep)])
+router = APIRouter(prefix="/events", tags=["events"])
 
 
 async def _attach_available_spots(db: AsyncSession, event: Event) -> EventOut:
@@ -62,6 +62,7 @@ async def submit_event_for_approval(
 @router.get("", response_model=PaginatedResponse[EventOut])
 async def list_events(
     db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(run_expiration_sweep)],
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
 ):
@@ -95,6 +96,7 @@ async def list_pending_events(
 async def get_event(
     db: Annotated[AsyncSession, Depends(get_db)],
     event: Annotated[Event, Depends(get_event_or_404)],
+    _: Annotated[None, Depends(run_expiration_sweep)],
 ):
     return await _attach_available_spots(db, event)
 
