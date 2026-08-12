@@ -68,7 +68,7 @@ async def cancel_own_registration(
     db: Annotated[AsyncSession, Depends(get_db)],
     registration: Annotated[Registration, Depends(_get_own_registration)],
 ):
-    return await cancel_registration(db, registration)
+    return await cancel_registration(db, registration.id)
 
 
 @router.get("/registrations/me", response_model=list[RegistrationOut])
