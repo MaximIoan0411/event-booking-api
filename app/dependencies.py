@@ -106,5 +106,6 @@ async def get_user_or_404(
 
 
 async def run_expiration_sweep(db: Annotated[AsyncSession, Depends(get_db)]) -> None:
-    from app.services.waitlist_service import expire_stale_entries
+    from app.services.waitlist_service import expire_stale_entries, close_completed_events
+    await close_completed_events(db)
     await expire_stale_entries(db)
