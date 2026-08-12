@@ -13,9 +13,11 @@ from app.dependencies import (
 from app.models.event import Event
 from app.models.registration import Registration
 from app.models.user import User
-from app.enums import EventStatus, RegistrationStatus
+from app.enums import EventStatus
 from app.schemas.event import EventCreate, EventUpdate, EventOut, EventApproval
 from app.schemas.common import PaginatedResponse
+
+from app.services.registration_service import OCCUPYING_STATUSES
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -24,7 +26,7 @@ async def _attach_available_spots(db: AsyncSession, event: Event) -> EventOut:
     count_result = await db.execute(
         select(func.count()).select_from(Registration).where(
             Registration.event_id == event.id,
-            Registration.status.in_((RegistrationStatus.PENDING_CONFIRMATION, RegistrationStatus.CONFIRMED)),
+            Registration.status.in_(OCCUPYING_STATUSES),
         )
     )
     occupied = count_result.scalar_one()
