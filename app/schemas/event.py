@@ -32,9 +32,7 @@ class EventCreate(EventBase):
 class EventUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=150)
     description: str | None = Field(default=None, max_length=2000)
-    capacity: int | None = Field(default=None, gt=0)
-    start_time: datetime | None = None
-    end_time: datetime | None = None
+    
 
 
 class EventApproval(BaseModel):
