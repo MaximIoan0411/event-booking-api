@@ -10,6 +10,8 @@ from app.dependencies import get_db
 from app.models.user import User
 from app.enums import UserRole
 
+from app.limiter import limiter
+
 import app.models 
 
 settings = get_settings()
@@ -19,6 +21,11 @@ if not TEST_DB_URL or "test" not in TEST_DB_URL:
     raise RuntimeError(
         "Invalid TEST_DATABASE_URL. Tests aborted to protect the production database."
     )
+
+@pytest_asyncio.fixture(autouse=True)
+async def reset_rate_limiter():
+    limiter.reset()
+    yield
 
 
 @pytest_asyncio.fixture(scope="session")
