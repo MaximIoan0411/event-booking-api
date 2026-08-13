@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Enum as SqlEnum
+from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Enum as SqlEnum, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 
 class Event(Base):
     __tablename__ = "events"
+    
+    __table_args__ = (
+        CheckConstraint("capacity > 0", name="capacity_positive"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

@@ -21,7 +21,7 @@ class RegistrationStatus(str, enum.Enum):
     CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
     EXPIRED = "expired"
-    ATTENDED = "attended"
+    # ATTENDED was intentionally removed
 
 
 class WaitlistStatus(str, enum.Enum):

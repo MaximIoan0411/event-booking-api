@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Enum as SqlEnum
+from sqlalchemy import DateTime, ForeignKey, Enum as SqlEnum, Index, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -18,6 +18,15 @@ if TYPE_CHECKING:
 
 class Registration(Base):
     __tablename__ = "registrations"
+    
+    __table_args__ = (
+        Index(
+            "uq_registration_active",
+            "user_id", "event_id",
+            unique=True,
+            postgresql_where=text("status IN ('PENDING_CONFIRMATION', 'CONFIRMED')"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

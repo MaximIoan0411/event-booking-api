@@ -97,7 +97,13 @@ async def confirm_registration(db: AsyncSession, registration: Registration) -> 
     return registration
 
 
-async def cancel_registration(db: AsyncSession, registration: Registration) -> Registration:
+async def cancel_registration(db: AsyncSession, registration_id: uuid.UUID) -> Registration:
+    result = await db.execute(
+        select(Registration).where(Registration.id == registration_id).with_for_update()
+    )
+    registration = result.scalar_one_or_none()
+    if registration is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Înregistrare inexistentă")
     if registration.status not in OCCUPYING_STATUSES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Înregistrarea nu poate fi anulată")
 

@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.waitlist import WaitlistEntry
 from app.models.registration import Registration
-from app.enums import WaitlistStatus, RegistrationStatus
+from app.enums import WaitlistStatus, RegistrationStatus, EventStatus
+from app.models.event import Event
+
 from app.config import get_settings
 
 settings = get_settings()
@@ -40,6 +42,39 @@ async def promote_next_from_waitlist(db: AsyncSession, event_id: uuid.UUID) -> W
     db.add(registration)
     await db.commit()
     return entry
+
+
+async def close_completed_events(db: AsyncSession) -> None:
+    now = datetime.now(timezone.utc)
+
+    result = await db.execute(
+        select(Event).where(Event.status == EventStatus.APPROVED, Event.end_time < now)
+    )
+    events_to_close = result.scalars().all()
+
+    for event in events_to_close:
+        event.status = EventStatus.COMPLETED
+
+        pending_result = await db.execute(
+            select(Registration).where(
+                Registration.event_id == event.id,
+                Registration.status == RegistrationStatus.PENDING_CONFIRMATION,
+            )
+        )
+        for reg in pending_result.scalars().all():
+            reg.status = RegistrationStatus.EXPIRED
+
+        waiting_result = await db.execute(
+            select(WaitlistEntry).where(
+                WaitlistEntry.event_id == event.id,
+                WaitlistEntry.status == WaitlistStatus.WAITING,
+            )
+        )
+        for entry in waiting_result.scalars().all():
+            entry.status = WaitlistStatus.EXPIRED
+
+    if events_to_close:
+        await db.commit()
 
 
 async def expire_stale_entries(db: AsyncSession) -> None:
