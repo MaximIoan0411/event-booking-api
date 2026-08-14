@@ -131,8 +131,12 @@ Covers auth, user management, event validation/approval workflow, registration/w
 
 ## Known Limitations
 
-- Waitlist `position` is set once when you join and isn't recalculated afterward, so it can look outdated if people ahead of you get promoted or expire.
-- No real "check-in" — a confirmed registration is treated as attendance.
+- **Asynchronous Task Processing:** The automatic expiration sweep currently runs during the request lifecycle. For massive datasets, offloading this cleanup task to a background worker (e.g., Celery/Redis) would prevent database table locking and maintain sub-millisecond API latency.
+- **Dynamic Waitlist Recalculation:** Waitlist `position` is currently static upon entry to minimize heavy database write operations. A future iteration would implement a read-optimized view or event-driven updates to reflect real-time queue changes efficiently.
+- **Admin API Pagination:** As the user and registration tables grow, administrative list endpoints (like `/events/{id}/registrations`) will transition to cursor-based or offset pagination to maintain optimal JSON payload sizes and prevent server memory overload.
+- **Attendance State Machine:** Expanding the registration lifecycle to include a physical "Checked-in" status (e.g., via QR scanning at the door), separating the digital "Confirmed" ticket from actual physical attendance.
+
+
 
 ## Getting Started
 
