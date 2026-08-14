@@ -122,21 +122,6 @@ async def admin_token(client, db_session):
 
 
 @pytest_asyncio.fixture
-async def concurrent_client(test_engine):
-    session_factory = async_sessionmaker(bind=test_engine, class_=AsyncSession, expire_on_commit=False)
-
-    async def override_get_db():
-        async with session_factory() as session:
-            yield session
-
-    fastapi_app.dependency_overrides[get_db] = override_get_db
-    transport = ASGITransport(app=fastapi_app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-    fastapi_app.dependency_overrides.clear()
-
-
-@pytest_asyncio.fixture
 async def attendee2_token(client):
     await client.post("/auth/register", json={
         "email": "attendee2_fixture@test.com",
@@ -152,15 +137,16 @@ async def attendee2_token(client):
 
 
 @pytest_asyncio.fixture
-async def attendee3_token(client):
-    await client.post("/auth/register", json={
-        "email": "attendee3_fixture@test.com",
-        "password": "parola123",
-        "full_name": "Test Attendee 3",
-        "role": "attendee",
-    })
-    resp = await client.post("/auth/login", data={
-        "username": "attendee3_fixture@test.com",
-        "password": "parola123",
-    })
-    return resp.json()["access_token"]
+async def make_concurrent_client(test_engine):
+    async def _make():
+        session_factory = async_sessionmaker(bind=test_engine, class_=AsyncSession, expire_on_commit=False)
+
+        async def override_get_db():
+            async with session_factory() as session:
+                yield session
+
+        fastapi_app.dependency_overrides[get_db] = override_get_db
+        transport = ASGITransport(app=fastapi_app)
+        return AsyncClient(transport=transport, base_url="http://test")
+
+    return _make
