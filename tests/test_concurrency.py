@@ -26,3 +26,5 @@ async def test_concurrent_registration_only_one_succeeds(
         assert statuses == ["registered", "waitlisted"]
     finally:
         await concurrent_client.aclose()
+
+
