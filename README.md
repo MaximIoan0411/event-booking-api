@@ -141,7 +141,7 @@ Covers auth, user management, event validation/approval workflow, registration/w
 ## Getting Started
 
 ```bash
-git clone https://github.com/<your-username>/event-booking-api.git
+git clone https://github.com/MaximIoan0411/event-booking-api.git
 cd event-booking-api
 python -m venv venv
 source venv/bin/activate  # venv\Scripts\activate on Windows
