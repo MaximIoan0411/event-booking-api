@@ -152,5 +152,4 @@ uvicorn app.main:app --reload
 ```
 
 ## License
-
 MIT
